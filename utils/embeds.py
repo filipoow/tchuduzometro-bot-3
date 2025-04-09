@@ -2,27 +2,34 @@ import discord
 from datetime import datetime
 
 def embed_sucesso(mensagem):
-    return discord.Embed(
+    embed = discord.Embed(
         title="✅ Ação concluída",
         description=mensagem,
         color=discord.Color.green()
-    ).set_footer(text="Você pode usar /ajuda para mais comandos.").set_timestamp(datetime.utcnow())
+    )
+    embed.set_footer(text="Você pode usar /ajuda para mais comandos.")
+    embed.timestamp = datetime.utcnow()
+    return embed
 
 def embed_erro(erro, sugestao):
-    return discord.Embed(
+    embed = discord.Embed(
         title="❌ Algo deu errado",
         color=discord.Color.red()
-    ).add_field(name="Erro", value=erro, inline=False)\
-     .add_field(name="Solução sugerida", value=sugestao, inline=False)\
-     .set_footer(text="Se o problema persistir, contate um administrador.")\
-     .set_timestamp(datetime.utcnow())
+    )
+    embed.add_field(name="Erro", value=erro, inline=False)
+    embed.add_field(name="Solução sugerida", value=sugestao, inline=False)
+    embed.set_footer(text="Se o problema persistir, contate um administrador.")
+    embed.timestamp = datetime.utcnow()
+    return embed
 
 def embed_alerta(tipo, descricao, funcao):
-    return discord.Embed(
+    embed = discord.Embed(
         title="🚨 Alerta do Sistema",
         color=discord.Color.orange()
-    ).add_field(name="Tipo", value=tipo)\
-     .add_field(name="Descrição", value=descricao)\
-     .add_field(name="Função afetada", value=funcao)\
-     .set_footer(text="Alerta automático de integridade do bot")\
-     .set_timestamp(datetime.utcnow())
+    )
+    embed.add_field(name="Tipo", value=tipo)
+    embed.add_field(name="Descrição", value=descricao)
+    embed.add_field(name="Função afetada", value=funcao)
+    embed.set_footer(text="Alerta automático de integridade do bot")
+    embed.timestamp = datetime.utcnow()
+    return embed
