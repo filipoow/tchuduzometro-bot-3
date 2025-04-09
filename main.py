@@ -45,12 +45,6 @@ async def on_ready():
 
     setup_scheduler(bot)
 
-    try:
-        synced = await bot.tree.sync()
-        print(f"✅ Comandos sincronizados globalmente: {len(synced)}")
-    except Exception as e:
-        print(f"❌ Erro ao sincronizar comandos: {e}")
-
 @bot.event
 async def on_guild_join(guild):
     try:
