@@ -32,7 +32,8 @@ async def on_ready():
         "commands.premiacao",
         "commands.feedback",
         "commands.admin_alerta",
-        "listeners.voice_tracking"
+        "listeners.voice_tracking",
+        "listeners.enquete_listener"
     ]
 
     for ext in extensoes:
@@ -43,5 +44,19 @@ async def on_ready():
             print(f"❌ Erro ao carregar {ext}: {e}")
 
     setup_scheduler(bot)
+
+    try:
+        synced = await bot.tree.sync()
+        print(f"✅ Comandos sincronizados globalmente: {len(synced)}")
+    except Exception as e:
+        print(f"❌ Erro ao sincronizar comandos: {e}")
+
+@bot.event
+async def on_guild_join(guild):
+    try:
+        synced = await bot.tree.sync(guild=guild)
+        print(f"🔁 Comandos sincronizados com a guilda {guild.name} ({guild.id})")
+    except Exception as e:
+        print(f"❌ Erro ao sincronizar comandos na guilda {guild.id}: {e}")
 
 bot.run(os.getenv("TOKEN"))
