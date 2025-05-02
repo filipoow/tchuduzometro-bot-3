@@ -71,7 +71,14 @@ class ChatGPTListener(commands.Cog):
                 max_tokens=150,
                 temperature=0.7
             )
-            return resp.choices[0].message.content.strip()
+             # Extrai e limpa o conteúdo
+            content = resp.choices[0].message.content or ""
+            content = content.strip()
+            # Sempre remove aspas que circundam a resposta
+            content = content.strip('"').strip("'")
+            if not content:
+                raise Exception("OpenAI retornou resposta vazia")
+            return content
         except OpenAIError as e:
             # log do erro original
             print(f"OpenAIError: {e}")
