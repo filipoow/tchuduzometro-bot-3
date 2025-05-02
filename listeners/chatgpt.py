@@ -28,6 +28,8 @@ Exemplos de falas:
 Se a IA acertar, fale apenas “era o mínimo”.
 """
 
+MODEL = os.getenv("MODEL")
+
 class ChatGPTListener(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -46,7 +48,7 @@ class ChatGPTListener(commands.Cog):
                 try:
                     # Chama a API com o novo client
                     resp = client.chat.completions.create(
-                        model="gpt-3.5-turbo",
+                        model=MODEL,
                         messages=[
                             {"role": "system", "content": SYSTEM_PERSONA},
                             {"role": "user",   "content": prompt}
