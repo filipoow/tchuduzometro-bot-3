@@ -62,7 +62,7 @@ class ChatGPTListener(commands.Cog):
         """
         try:
             combined = f"{username} perguntou: {prompt}"
-            resp = openai_client.chat.completions.create(
+            resp = client.chat.completions.create(
                 model=OPENAI_MODEL,
                 messages=[
                     {"role": "system",  "content": SYSTEM_PERSONA},
