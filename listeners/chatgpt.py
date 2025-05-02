@@ -39,53 +39,60 @@ class ChatGPTListener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        # ignora bots e comandos slash
         if message.author.bot or message.content.startswith(self.bot.command_prefix):
             return
 
+        # só responde se mencionar o bot
         if self.bot.user in message.mentions:
             prompt = message.content.replace(f"<@!{self.bot.user.id}>", "").strip()
-            async with message.channel.typing():
-                # Tenta OpenAI
-                try:
-                    resp = client.chat.completions.create(
-                        model=OPENAI_MODEL,
-                        messages=[
-                            {"role": "system", "content": SYSTEM_PERSONA},
-                            {"role": "user",   "content": prompt}
-                        ],
-                        max_tokens=150,
-                        temperature=0.7
-                    )
-                    reply = resp.choices[0].message.content.strip()
+            username = message.author.display_name
 
-                # Qualquer erro (quota ou outro), faz fallback HF
-                except (OpenAIError, Exception):
-                    reply = await self._fallback_hf(prompt)
+            async with message.channel.typing():
+                # despacha geração para thread
+                reply = await asyncio.to_thread(self._generate_reply, username, prompt)
 
             await message.reply(reply, mention_author=True)
 
-    async def _fallback_hf(self, prompt: str) -> str:
+    def _generate_reply(self, username: str, prompt: str) -> str:
         """
-        Fallback gratuito usando Hugging Face InferenceClient.
+        Tenta gerar com OpenAI e, em falha/quota, faz fallback para HF.
+        Insere nome de usuário no conteúdo da mensagem.
         """
         try:
-            # junta persona + prompt
-            full_prompt = SYSTEM_PERSONA + "\n\nUsuário: " + prompt
-            # usa prompt e model como keywords
+            combined = f"{username} perguntou: {prompt}"
+            resp = openai_client.chat.completions.create(
+                model=OPENAI_MODEL,
+                messages=[
+                    {"role": "system",  "content": SYSTEM_PERSONA},
+                    {"role": "user",    "content": combined}
+                ],
+                max_tokens=150,
+                temperature=0.7
+            )
+            return resp.choices[0].message.content.strip()
+        except (OpenAIError, Exception):
+            return self._fallback_hf(username, prompt)
+
+    def _fallback_hf(self, username: str, prompt: str) -> str:
+        """
+        Fallback usando Hugging Face InferenceClient.
+        Inclui nome do usuário no texto de entrada.
+        """
+        try:
+            full = f"{SYSTEM_PERSONA}\n\n{username} perguntou: {prompt}"
             output = hf_client.text_generation(
-                prompt=full_prompt,
+                prompt=full,
                 model=HF_MODEL,
                 max_new_tokens=150,
                 temperature=0.7
             )
-            # dependendo do modelo, pode vir str ou list:
             if isinstance(output, str):
                 return output.strip()
-            # lista de GenerationResult
             return output[0].generated_text.strip()
-        except Exception as e:
-            print(e)
+        except Exception:
             return "Cansei de responder, só falo no próximo mês seu merda!"
 
+# entrypoint assíncrono para discord.py 2.x
 async def setup(bot: commands.Bot):
     await bot.add_cog(ChatGPTListener(bot))
