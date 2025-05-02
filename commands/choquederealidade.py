@@ -40,7 +40,7 @@ class Choque(commands.Cog):
             description=f"{giver.mention} deu um choque de realidade em {receiver.mention}!",
             color=discord.Color.gold()
         )
-        embed.set_image(url="https://media.giphy.com/media/3o7TKsQmo9rYxJdI3u/giphy.gif")
+        embed.set_image(url="https://i.gifer.com/1IYp.gif")
         embed.add_field(name="Quem deu o choque", value=giver.display_name, inline=True)
         embed.add_field(name="Quem recebeu", value=receiver.display_name, inline=True)
         embed.add_field(name="Total que já deu para esse usuário", value=str(choques_dados), inline=False)

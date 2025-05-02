@@ -33,11 +33,14 @@ async def on_ready():
         "commands.feedback",
         "commands.admin_alerta",
         "listeners.voice_tracking",
-        "listeners.enquete_listener"
+        "listeners.enquete_listener",
+        "listeners.chatgpt"
     ]
 
     for ext in extensoes:
         try:
+            setup_scheduler(bot)
+            
             await bot.load_extension(ext)
             print(f"✅ Módulo carregado: {ext}")
         except Exception as e:
