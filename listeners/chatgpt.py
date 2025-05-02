@@ -65,7 +65,7 @@ class ChatGPTListener(commands.Cog):
 
     async def _fallback_hf(self, prompt: str) -> str:
         """
-        Gera resposta usando o Hugging Face Inference (anônimo).
+        Gera resposta usando o Hugging Face Inference.
         """
         try:
             # concatena persona + prompt
@@ -78,7 +78,8 @@ class ChatGPTListener(commands.Cog):
             )
             # output é uma lista de Generation, pega o texto
             return output[0].generated_text.strip()
-        except Exception:
+        except Exception as e:
+            print(e)
             return "Cansei de responder, só falo no próximo mês seu merda!"
 
 # entrypoint assíncrono
