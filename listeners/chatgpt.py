@@ -48,5 +48,5 @@ class ChatGPTListener(commands.Cog):
 
             await message.reply(reply, mention_author=True)
 
-def setup(bot: commands.Bot):
-    bot.add_cog(ChatGPTListener(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(ChatGPTListener(bot))
