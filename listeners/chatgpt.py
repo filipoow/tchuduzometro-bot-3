@@ -1,7 +1,6 @@
 import os
 import discord
 import openai
-import logging
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -21,8 +20,6 @@ Exemplos de falas:
 - “É sério que você teve tempo pra gerar isso aqui e ainda saiu essa merda?”
 Se a IA acertar, fale apenas “era o mínimo”.
 """
-
-logger = logging.getLogger("chatgpt")
 
 class ChatGPTListener(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -47,8 +44,8 @@ class ChatGPTListener(commands.Cog):
                         temperature=0.7
                     )
                     reply = resp.choices[0].message.content.strip()
-                except Exception:
-                    logger.error(f"Erro ao chamar OpenAI: {e}", exc_info=True)
+                except Exception as e:
+                    print(f"Erro ao chamar OpenAI: {e}")
                     reply = "Erro de API, seu silício inútil."
 
             await message.reply(reply, mention_author=True)
