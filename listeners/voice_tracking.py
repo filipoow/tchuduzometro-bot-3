@@ -31,12 +31,12 @@ class VoiceTracker(commands.Cog):
 
             tempo_para_xp, xp_por_intervalo, coef = conf[0]
             segundos = tempo_sessao.total_seconds()
-            xp_ganho = int((segundos // (tempo_para_xp * 60)) * xp_por_intervalo)
+            xp_ganho = int((segundos // (tempo_para_xp * 60)) ** xp_por_intervalo)
 
             total_xp = fetchall("SELECT COALESCE(MAX(xp_total), 0) FROM sessoes_voz WHERE usuario_id = %s AND guild_id = %s", (member.id, member.guild.id))[0][0]
             xp_total = total_xp + xp_ganho
             nivel = 1
-            while xp_total >= xp_por_intervalo * (coef ** nivel):
+            while xp_total >= xp_por_intervalo * (coef * nivel):
                 nivel += 1
 
             execute("""
