@@ -5,7 +5,7 @@ from openai import OpenAI, OpenAIError
 from huggingface_hub import InferenceClient
 from dotenv import load_dotenv
 
-# Carrega variáveis de ambiente
+# Carrega .env
 load_dotenv()
 
 # Cliente OpenAI
@@ -14,7 +14,7 @@ client = OpenAI(
     base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 )
 
-# Cliente HF Inference (anônimo por padrão)
+# Cliente HF Inference (anônimo)
 hf_client = InferenceClient()
 
 # Persona do Araujo
@@ -41,7 +41,7 @@ class ChatGPTListener(commands.Cog):
         if self.bot.user in message.mentions:
             prompt = message.content.replace(f"<@!{self.bot.user.id}>", "").strip()
             async with message.channel.typing():
-                # 1) Tenta OpenAI
+                # Tenta OpenAI
                 try:
                     resp = client.chat.completions.create(
                         model=OPENAI_MODEL,
@@ -54,34 +54,33 @@ class ChatGPTListener(commands.Cog):
                     )
                     reply = resp.choices[0].message.content.strip()
 
-                # 2) Se estourar cota ou outro erro, faz fallback para HF
-                except OpenAIError as oe:
-                    reply = await self._fallback_hf(prompt)
-
-                except Exception:
+                # Qualquer erro (quota ou outro), faz fallback HF
+                except (OpenAIError, Exception):
                     reply = await self._fallback_hf(prompt)
 
             await message.reply(reply, mention_author=True)
 
     async def _fallback_hf(self, prompt: str) -> str:
         """
-        Gera resposta usando o Hugging Face Inference.
+        Fallback gratuito usando Hugging Face InferenceClient.
         """
         try:
-            # concatena persona + prompt
-            inputs = SYSTEM_PERSONA + "\n\nUsuário: " + prompt
-            # texto gerado
+            # junta persona + prompt
+            full_prompt = SYSTEM_PERSONA + "\n\nUsuário: " + prompt
+            # usa prompt e model como keywords
             output = hf_client.text_generation(
+                prompt=full_prompt,
                 model=HF_MODEL,
-                inputs=inputs,
-                parameters={"max_new_tokens": 150, "temperature": 0.7}
+                max_new_tokens=150,
+                temperature=0.7
             )
-            # output é uma lista de Generation, pega o texto
+            # dependendo do modelo, pode vir str ou list:
+            if isinstance(output, str):
+                return output.strip()
+            # lista de GenerationResult
             return output[0].generated_text.strip()
-        except Exception as e:
-            print(e)
+        except Exception:
             return "Cansei de responder, só falo no próximo mês seu merda!"
 
-# entrypoint assíncrono
 async def setup(bot: commands.Bot):
     await bot.add_cog(ChatGPTListener(bot))
