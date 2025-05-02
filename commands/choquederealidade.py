@@ -43,8 +43,8 @@ class Choque(commands.Cog):
         embed.set_image(url="https://i.gifer.com/1IYp.gif")
         embed.add_field(name="Quem deu o choque", value=giver.display_name, inline=True)
         embed.add_field(name="Quem recebeu", value=receiver.display_name, inline=True)
-        embed.add_field(name="Total que já deu para esse usuário", value=str(choques_dados), inline=False)
-        embed.add_field(name="Total que já recebeu deste usuário", value=str(choques_recebidos), inline=False)
+        embed.add_field(name="Total de choques dados para esse usuário", value=str(choques_dados), inline=False)
+        embed.add_field(name="Total de choques recebidos por esse usuário", value=str(choques_recebidos), inline=False)
         embed.set_footer(text="Use com moderação... ou não 👀")
         embed.timestamp = now
 

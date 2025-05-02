@@ -14,10 +14,10 @@ class Passou(commands.Cog):
         now = datetime.utcnow()
         canal = interaction.channel
 
-        # Cria embed
+        # Cria embed de votação
         embed = discord.Embed(
             title="🧨 Julgamento: Acusação de 'Se Passar'",
-            description=f"{interaction.user.mention} está acusando {usuario.mention} de SE PASSAR DEMAIS!",
+            description=f"{interaction.user.mention} acusa {usuario.mention} de se passar demais!",
             color=discord.Color.orange()
         )
         embed.set_image(url="https://media.giphy.com/media/3o6Zt6ML6BklcajjsA/giphy.gif")
@@ -27,12 +27,13 @@ class Passou(commands.Cog):
         embed.set_footer(text="Seu voto será registrado. Justiça será feita… talvez.")
         embed.timestamp = now
 
-        # Envia embed com botões
+        # Define View com botões
         class Votacao(discord.ui.View):
             def __init__(self):
                 super().__init__(timeout=180)
                 self.votos = {"Sim": 0, "Não": 0, "Condenar": 0}
                 self.votantes = []
+                self.votacao_id = None
 
             @discord.ui.button(label="SIM", style=discord.ButtonStyle.success)
             async def sim(self, interaction_btn: discord.Interaction, _):
@@ -52,26 +53,50 @@ class Passou(commands.Cog):
                     return
                 self.votantes.append(interaction_btn.user.id)
                 self.votos[opcao] += 1
-                execute("INSERT INTO votos_passou (votacao_id, votante_id, timestamp, opcao) VALUES (%s,%s,%s,%s)", (
-                    self.votacao_id, interaction_btn.user.id, datetime.utcnow(), opcao
-                ), commit=True)
+                # Insere voto na tabela
+                execute(
+                    "INSERT INTO votos_passou (votacao_id, votante_id, timestamp, opcao) VALUES (%s,%s,%s,%s)",
+                    (self.votacao_id, interaction_btn.user.id, datetime.utcnow(), opcao),
+                    commit=True
+                )
                 await interaction_btn.response.send_message(f"Voto '{opcao}' registrado!", ephemeral=True)
 
         view = Votacao()
 
-        # Registro inicial da votação
-        execute("""
-            INSERT INTO votacoes_passou (guild_id, canal_id, inicio, fim, acusador_id, acusador_nome, acusado_id, acusado_nome, votos_sim, votos_nao, votos_condenar, resultado_final, lista_votantes, data_finalizacao)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,0,0,0,NULL,ARRAY[]::TEXT[],NULL)
-        """, (
-            interaction.guild.id, canal.id, now, now + timedelta(minutes=3),
-            interaction.user.id, interaction.user.display_name,
-            usuario.id, usuario.display_name
-        ), commit=True)
+        # Insere a votação e recupera o ID gerado
+        rows = execute(
+            """
+            INSERT INTO votacoes_passou (
+                guild_id, canal_id, inicio, fim,
+                acusador_id, acusador_nome,
+                acusado_id, acusado_nome,
+                votos_sim, votos_nao, votos_condenar,
+                resultado_final, lista_votantes, data_finalizacao
+            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,0,0,0,NULL,ARRAY[]::TEXT[],NULL)
+            RETURNING id
+            """,
+            (
+                interaction.guild.id,
+                canal.id,
+                now,
+                now + timedelta(minutes=3),
+                interaction.user.id,
+                interaction.user.display_name,
+                usuario.id,
+                usuario.display_name
+            ),
+            commit=True
+        )
+        # Se RETURNING não retornar, faz SELECT fallback
+        if rows and rows[0] and rows[0][0] is not None:
+            votacao_id = rows[0][0]
+        else:
+            result = execute("SELECT MAX(id) FROM votacoes_passou")
+            votacao_id = result[0][0] if result and result[0] and result[0][0] is not None else 1
 
-        votacao_id = execute("SELECT MAX(votacao_id) FROM votacoes_passou")[0][0]
         view.votacao_id = votacao_id
 
+        # Envia a mensagem com o View
         await interaction.response.send_message(embed=embed, view=view)
 
 async def setup(bot):
