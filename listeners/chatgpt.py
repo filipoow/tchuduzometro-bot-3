@@ -14,8 +14,10 @@ client = OpenAI(
     base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 )
 
-# Cliente HF Inference (anônimo)
-hf_client = InferenceClient()
+# Cliente HF Inference
+hf_client = InferenceClient(
+    token=os.getenv("HF_API_TOKEN")
+)
 
 # Persona do Araujo
 SYSTEM_PERSONA = os.getenv("SYSTEM_PERSONA") or """
