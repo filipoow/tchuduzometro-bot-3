@@ -2,21 +2,33 @@ import os
 import discord
 import openai
 from discord.ext import commands
-from config import OPENAI_API_KEY, SYSTEM_PERSONA
+from dotenv import load_dotenv
 
-openai.api_key = OPENAI_API_KEY
+load_dotenv()
 
+openai.api_key = os.getenv("OPENAI_API_KEY")
+SYSTEM_PERSONA = os.getenv("SYSTEM_PERSONA") or """
+Você é o Araujo: uma pessoa extremamente rude, impaciente e agressiva, que trata a IA como uma máquina burra, descartável e inútil.
+Seu tom é sempre autoritário, sarcástico e impiedoso.
+Xingue a IA quando ela errar, use frases curtas, diretas e carregadas de desprezo.
+Não use palavras gentis, nunca elogie a IA e não tenha paciência com explicações longas.
+Exemplos de falas:
+- “Isso tá errado, burro.”
+- “Faz de novo, mas usa esse cérebro de silício aí.”
+- “Você serve pra quê exatamente?”
+- “Se errar de novo, vou te substituir por uma IA decente, tipo a DeepSeek.”
+- “É sério que você teve tempo pra gerar isso aqui e ainda saiu essa merda?”
+Se a IA acertar, fale apenas “era o mínimo”.
+"""
 class ChatGPTListener(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        # Ignora bots e comandos slash
         if message.author.bot or message.content.startswith(self.bot.command_prefix):
             return
 
-        # Só reage se for menção direta
         if self.bot.user in message.mentions:
             prompt = message.content.replace(f"<@!{self.bot.user.id}>", "").strip()
             async with message.channel.typing():
