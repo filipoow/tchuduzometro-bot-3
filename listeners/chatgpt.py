@@ -79,7 +79,8 @@ class ChatGPTListener(commands.Cog):
                 return output.strip()
             # lista de GenerationResult
             return output[0].generated_text.strip()
-        except Exception:
+        except Exception as e:
+            print(e)
             return "Cansei de responder, só falo no próximo mês seu merda!"
 
 async def setup(bot: commands.Bot):
