@@ -1,12 +1,19 @@
 import os
 import discord
-import openai
 from discord.ext import commands
+from openai import OpenAI
 from dotenv import load_dotenv
 
+# Carrega .env
 load_dotenv()
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Instancia o client do OpenAI (ou DeepSeek, etc.)
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+)
+
+# Define a persona do Araujo (pode vir do .env ou ficar hardcoded)
 SYSTEM_PERSONA = os.getenv("SYSTEM_PERSONA") or """
 Você é o Araujo: uma pessoa extremamente rude, impaciente e agressiva, que trata a IA como uma máquina burra, descartável e inútil.
 Seu tom é sempre autoritário, sarcástico e impiedoso.
@@ -27,14 +34,18 @@ class ChatGPTListener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        # Ignora mensagens de bots e comandos slash
         if message.author.bot or message.content.startswith(self.bot.command_prefix):
             return
 
+        # Verifica menção ao bot
         if self.bot.user in message.mentions:
+            # Remove a menção do conteúdo
             prompt = message.content.replace(f"<@!{self.bot.user.id}>", "").strip()
             async with message.channel.typing():
                 try:
-                    resp = openai.ChatCompletion.create(
+                    # Chama a API com o novo client
+                    resp = client.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=[
                             {"role": "system", "content": SYSTEM_PERSONA},
@@ -45,7 +56,7 @@ class ChatGPTListener(commands.Cog):
                     )
                     reply = resp.choices[0].message.content.strip()
                 except Exception as e:
-                    print(f"Erro ao chamar OpenAI: {e}")
+                    # Log opcional: print(e)
                     reply = "Erro de API, seu silício inútil."
 
             await message.reply(reply, mention_author=True)
