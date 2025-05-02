@@ -56,8 +56,8 @@ class ChatGPTListener(commands.Cog):
                     )
                     reply = resp.choices[0].message.content.strip()
                 except Exception as e:
-                    # Log opcional: print(e)
-                    reply = "Erro de API, seu silício inútil."
+                    print(f"Erro ao chamar OpenAI: {e}")
+                    reply = "Cansei de responder, só falo no próximo mês seu merda!"
 
             await message.reply(reply, mention_author=True)
 
