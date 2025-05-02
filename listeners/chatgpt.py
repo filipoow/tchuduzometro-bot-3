@@ -1,5 +1,6 @@
 import os
 import discord
+import asyncio
 from discord.ext import commands
 from openai import OpenAI, OpenAIError
 from huggingface_hub import InferenceClient
@@ -39,17 +40,17 @@ class ChatGPTListener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        # ignora bots e comandos slash
+        # Ignora mensagens de bots e comandos slash
         if message.author.bot or message.content.startswith(self.bot.command_prefix):
             return
 
-        # só responde se mencionar o bot
+        # Só responde se mencionar o bot
         if self.bot.user in message.mentions:
             prompt = message.content.replace(f"<@!{self.bot.user.id}>", "").strip()
             username = message.author.display_name
 
             async with message.channel.typing():
-                # despacha geração para thread
+                # Despacha geração para thread para não bloquear o loop do Discord
                 reply = await asyncio.to_thread(self._generate_reply, username, prompt)
 
             await message.reply(reply, mention_author=True)
@@ -87,12 +88,14 @@ class ChatGPTListener(commands.Cog):
                 max_new_tokens=150,
                 temperature=0.7
             )
+            # Pode retornar str ou lista de GenerationResult
             if isinstance(output, str):
                 return output.strip()
             return output[0].generated_text.strip()
-        except Exception:
+        except Exception as e:
+            print(e)
             return "Cansei de responder, só falo no próximo mês seu merda!"
 
-# entrypoint assíncrono para discord.py 2.x
+# Entrypoint assíncrono para discord.py 2.x
 async def setup(bot: commands.Bot):
     await bot.add_cog(ChatGPTListener(bot))
