@@ -72,8 +72,13 @@ class ChatGPTListener(commands.Cog):
                 temperature=0.7
             )
             return resp.choices[0].message.content.strip()
-        except (OpenAIError, Exception):
-            print(OpenAIError)
+        except OpenAIError as e:
+            # log do erro original
+            print(f"OpenAIError: {e}")
+            return self._fallback_hf(username, prompt)
+        except Exception as e:
+            # erro genérico
+            print(f"Erro genérico OpenAI: {e}")
             return self._fallback_hf(username, prompt)
 
     def _fallback_hf(self, username: str, prompt: str) -> str:
