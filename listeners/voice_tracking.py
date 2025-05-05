@@ -36,8 +36,8 @@ class VoiceTracker(commands.Cog):
             total_xp = fetchall("SELECT COALESCE(MAX(xp_total), 0) FROM sessoes_voz WHERE usuario_id = %s AND guild_id = %s", (member.id, member.guild.id))[0][0]
             xp_total = total_xp + xp_ganho
             nivel = 1
-            while xp_total >= xp_por_intervalo * (coef ** nivel):
-                nivel += 20
+            while xp_total >= xp_por_intervalo * (coef * nivel):
+                nivel += 1
 
             execute("""
                 INSERT INTO sessoes_voz (guild_id, canal_id, usuario_id, usuario_nome, entrada, saida, tempo_sessao, xp_ganho, xp_total, nivel)
